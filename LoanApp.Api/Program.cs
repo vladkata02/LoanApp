@@ -1,5 +1,4 @@
-using LoanApp.Infrastructure.Entities;
-using Microsoft.AspNetCore.Identity;
+using LoanApp.Infrastructure.Persistance;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -7,21 +6,8 @@ var builder = WebApplication.CreateBuilder(args);
 var config = builder.Configuration;
 var services = builder.Services;
 
-services.AddDbContext<DbContext>(options =>
+services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(config.GetConnectionString("DefaultConnection")));
-
-services.AddIdentity<User, IdentityRole>()
-    .AddEntityFrameworkStores<DbContext>()
-    .AddDefaultTokenProviders();
-
-services.Configure<IdentityOptions>(options =>
-{
-    options.Password.RequireDigit = true;
-    options.Password.RequireLowercase = true;
-    options.Password.RequireUppercase = false;
-    options.Password.RequireNonAlphanumeric = false;
-    options.Password.RequiredLength = 6;
-});
 
 services.AddControllers();
 services.AddEndpointsApiExplorer();

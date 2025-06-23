@@ -2,12 +2,24 @@
 {
     public class User
     {
-        public string Id { get; set; }
+        public int UserId { get; set; }
 
-        public string Email { get; set; }
+        public string Email { get; set; } = null!;
 
-        public string PasswordHash { get; set; }
+        public string PasswordHash { get; set; } = string.Empty;
 
-        public List<Loan> Loans { get; set; } = new();
+        public string FirstName { get; set; } = null!;
+
+        public string MiddleName { get; set; } = null!;
+
+        public string LastName { get; set; } = null!;
+
+        public string EGN { get; set; } = null!;
+
+        public string PhoneNumber { get; set; } = null!;
+
+        public decimal NetSalary { get; set; }
+
+        public bool HasPreviousLoans { get; set; }
     }
 }
