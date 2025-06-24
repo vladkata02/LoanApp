@@ -2,10 +2,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\LoanApp.Domain\LoanApp.Domain.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.1" />
+    <ProjectReference Include="..\LoanApp.Infrastructure\LoanApp.Infrastructure.csproj" />
   </ItemGroup>
 
   <PropertyGroup>

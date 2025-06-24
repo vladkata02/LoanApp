@@ -7,6 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.1" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.6" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.6">
@@ -19,6 +20,7 @@
   <ItemGroup>
     <ProjectReference Include="..\LoanApp.Application\LoanApp.Application.csproj" />
     <ProjectReference Include="..\LoanApp.Infrastructure\LoanApp.Infrastructure.csproj" />
+    <ProjectReference Include="..\LoanApp.Data\LoanApp.Data.csproj" />
   </ItemGroup>
 
 </Project>

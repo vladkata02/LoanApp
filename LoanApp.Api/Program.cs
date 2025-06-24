@@ -1,3 +1,5 @@
+using LoanApp.Application.Mapping;
+using LoanApp.Data;
 using LoanApp.Infrastructure.Persistance;
 using Microsoft.EntityFrameworkCore;
 
@@ -9,9 +11,11 @@ var services = builder.Services;
 services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(config.GetConnectionString("DefaultConnection")));
 
+services.AddData();
 services.AddControllers();
 services.AddEndpointsApiExplorer();
 services.AddSwaggerGen();
+services.AddAutoMapper(typeof(MappingProfile));
 
 var app = builder.Build();
 
