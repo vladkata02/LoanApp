@@ -1,25 +1,27 @@
-﻿namespace LoanApp.Domain.Entities
+﻿using LoanApp.Domain.Enums;
+
+namespace LoanApp.Domain.Entities
 {
     public class User
     {
+        public User() { }
+
+        public User(
+            string email,
+            string passwordHash,
+            UserRole role)
+        {
+            this.Email = email;
+            this.PasswordHash = passwordHash;
+            this.Role = role;
+        }
+
         public int UserId { get; set; }
 
         public string Email { get; set; } = null!;
 
-        public string PasswordHash { get; set; } = string.Empty;
+        public string PasswordHash { get; set; } = null!;
 
-        public string FirstName { get; set; } = null!;
-
-        public string MiddleName { get; set; } = null!;
-
-        public string LastName { get; set; } = null!;
-
-        public string EGN { get; set; } = null!;
-
-        public string PhoneNumber { get; set; } = null!;
-
-        public decimal NetSalary { get; set; }
-
-        public bool HasPreviousLoans { get; set; }
+        public UserRole Role { get; set; }
     }
 }

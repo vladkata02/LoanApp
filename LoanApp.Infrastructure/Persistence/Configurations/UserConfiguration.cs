@@ -16,32 +16,15 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(u => u.PasswordHash)
                .IsRequired();
 
-        builder.Property(u => u.FirstName)
-               .IsRequired()
-               .HasMaxLength(50);
-
-        builder.Property(u => u.MiddleName)
-               .HasMaxLength(50);
-
-        builder.Property(u => u.LastName)
-               .IsRequired()
-               .HasMaxLength(50);
-
-        builder.Property(u => u.PhoneNumber)
-               .IsRequired()
-               .HasMaxLength(10);
-
-        builder.Property(u => u.EGN)
-               .IsRequired()
-               .HasMaxLength(10);
-
-        builder.Property(u => u.NetSalary)
-               .HasColumnType("money")
+        builder.Property(u => u.Role)
                .IsRequired();
 
-        builder.Property(u => u.HasPreviousLoans)
-               .IsRequired();
+        builder.HasIndex(u => u.Email)
+               .IsUnique();
 
-        builder.ToTable("Users");
+        builder.ToTable("Users", t =>
+        {
+            t.HasCheckConstraint("CK_User_Role", "[Role] IN (1, 2)");
+        });
     }
 }

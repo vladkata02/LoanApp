@@ -1,6 +1,4 @@
-﻿using LoanApp.Data.Generic;
-using LoanApp.Infrastructure.Persistance;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 
 namespace LoanApp.Data.Generic
 {
@@ -24,6 +22,11 @@ namespace LoanApp.Data.Generic
         public virtual async Task<IEnumerable<TEntity>> ListAsync(CancellationToken cancellationToken)
         {
             return await this.dbSet.AsNoTracking().ToListAsync(cancellationToken);
+        }
+
+        public virtual async Task AddAsync(TEntity entity)
+        {
+            await this.dbSet.AddAsync(entity);
         }
 
         public virtual async Task AddAsync(TEntity entity, CancellationToken cancellationToken)

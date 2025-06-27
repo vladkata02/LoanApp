@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace LoanApp.Data.Repositories.LoanApplications
 {
-    internal class LoanApplicationRepository : AggregateRepository<LoanApplication>, ILoanApplicationRepository
+    public class LoanApplicationRepository : AggregateRepository<LoanApplication>, ILoanApplicationRepository
     {
         public LoanApplicationRepository(IUnitOfWork unitOfWork) : base(unitOfWork)
         {

@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace LoanApp.Data.Generic
+﻿namespace LoanApp.Data.Generic
 {
     public interface IAggregateRepository<TEntity>
         where TEntity : class
@@ -12,6 +6,8 @@ namespace LoanApp.Data.Generic
         Task<TEntity?> GetByIdAsync(int id, CancellationToken cancellationToken = default);
 
         Task<IEnumerable<TEntity>> ListAsync(CancellationToken cancellationToken = default);
+
+        Task AddAsync(TEntity entity);
 
         Task AddAsync(TEntity entity, CancellationToken cancellationToken = default);
 

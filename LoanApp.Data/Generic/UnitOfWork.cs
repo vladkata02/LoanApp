@@ -1,5 +1,4 @@
 ﻿using LoanApp.Infrastructure.Persistance;
-using Microsoft.EntityFrameworkCore;
 
 namespace LoanApp.Data.Generic
 {

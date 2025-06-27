@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using LoanApp.Domain.Enums;
+using System.ComponentModel.DataAnnotations;
 
 namespace LoanApp.Application.Mapping.DTOs
 {
@@ -6,7 +7,7 @@ namespace LoanApp.Application.Mapping.DTOs
     {
         public int UserId { get; set; }
 
-        [Required(ErrorMessage = "Email is mandatory")]
+        [Required]
         [EmailAddress(ErrorMessage = "Invalid email format")]
         public string Email { get; set; } = null!;
 
@@ -15,25 +16,6 @@ namespace LoanApp.Application.Mapping.DTOs
         public string Password { get; set; } = string.Empty;
 
         [Required]
-        public string FirstName { get; set; } = null!;
-
-        [Required]
-        public string MiddleName { get; set; } = null!;
-
-        [Required]
-        public string LastName { get; set; } = null!;
-
-        [Required]
-        [RegularExpression(@"^\d{10}$", ErrorMessage = "EGN must be exactly 10 digits")]
-        public string EGN { get; set; } = null!;
-
-        [Required]
-        public string PhoneNumber { get; set; } = null!;
-
-        [Required]
-        public decimal NetSalary { get; set; }
-
-        [Required]
-        public bool HasPreviousLoans { get; set; }
+        public UserRole Role { get; set; }
     }
 }

@@ -3,30 +3,37 @@ using LoanApp.Application.Mapping.DTOs;
 using LoanApp.Data.Generic;
 using LoanApp.Data.Repositories.Users;
 using LoanApp.Domain.Entities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using LoanApp.Data.Repositories.InviteCodes;
+using Microsoft.AspNetCore.Identity.Data;
 
 namespace LoanApp.Api.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize(Roles = "Admin")]
     public class UsersController : ControllerBase
     {
         private readonly IUserRepository userRepository;
+        private readonly IInviteCodeRepository inviteCodeRepository;
         private readonly IUnitOfWork unitOfWork;
         private readonly IMapper mapper;
 
         public UsersController(
             IUserRepository userRepository,
+            IInviteCodeRepository inviteCodeRepository,
             IUnitOfWork unitOfWork,
             IMapper mapper)
         {
             this.userRepository = userRepository;
+            this.inviteCodeRepository = inviteCodeRepository;
             this.unitOfWork = unitOfWork;
             this.mapper = mapper;
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll(CancellationToken ct)
+        public async Task<IActionResult> GetAllUsers(CancellationToken ct)
         {
             var users = await this.userRepository.ListAsync(ct);
 
@@ -49,16 +56,19 @@ namespace LoanApp.Api.Controllers
             return Ok(userDto);
         }
 
-        [HttpPost]
-        public async Task<IActionResult> Create(UserDto userDto, CancellationToken ct)
+        [HttpPost("invitation")]
+        public async Task<IActionResult> CreateInvitationCode(string email)
         {
-            var user = this.mapper.Map<User>(userDto);
+            var isEmailFree = this.userRepository.IsEmailFree(email);
 
-            await this.userRepository.AddAsync(user, ct);
+            if (isEmailFree)
+            {
+                return Conflict();
+            }
 
-            await this.unitOfWork.SaveChangesAsync(ct);
+            var invitationCode = await this.inviteCodeRepository.CreateInviteCodeAsync(email);
 
-            return CreatedAtAction(nameof(GetById), new { userId = userDto.UserId }, userDto);
+            return Ok(invitationCode.Code);
         }
 
         [HttpPut("{userId:int}")]
@@ -73,22 +83,6 @@ namespace LoanApp.Api.Controllers
             this.mapper.Map(userDto, existingUser);
 
             this.userRepository.Update(existingUser);
-
-            await this.unitOfWork.SaveChangesAsync(ct);
-
-            return NoContent();
-        }
-
-        [HttpDelete("{userId:int}")]
-        public async Task<IActionResult> Delete(int userId, CancellationToken ct)
-        {
-            var existing = await this.userRepository.GetByIdAsync(userId, ct);
-            if (existing is null)
-            {
-                return NotFound();
-            }
-
-            this.userRepository.Remove(existing);
 
             await this.unitOfWork.SaveChangesAsync(ct);
 

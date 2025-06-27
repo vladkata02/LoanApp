@@ -1,17 +1,43 @@
-﻿using LoanApp.Data.Generic;
+﻿using LoanApp.Application.Mapping.DTOs;
+using LoanApp.Application.Services;
+using LoanApp.Data.Generic;
 using LoanApp.Domain.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using LoanApp.Domain.Enums;
 
 namespace LoanApp.Data.Repositories.Users
 {
-    internal class UserRepository : AggregateRepository<User>, IUserRepository
+    public class UserRepository : AggregateRepository<User>, IUserRepository
     {
-        public UserRepository(IUnitOfWork unitOfWork) : base(unitOfWork)
+        private readonly IAuthService authService;
+
+        public UserRepository(IUnitOfWork unitOfWork, IAuthService authService) : base(unitOfWork)
         {
+            this.authService = authService;
+        }
+
+        public async Task<User?> FindByEmailAsync(string email)
+        {
+            return this.unitOfWork.DbContext.Set<User>().FirstOrDefault(x => x.Email == email);
+        }
+
+        public async Task<User> CreateUserAsync(UserDto userDto, UserRole role)
+        {
+            var passwordHash = this.authService.HashPassword(userDto.Password);
+
+            var user = new User(userDto.Email,
+                passwordHash,
+                role);
+
+            await this.AddAsync(user);
+
+            await this.unitOfWork.SaveChangesAsync();
+
+            return user;
+        }
+
+        public bool IsEmailFree(string email)
+        {
+            return this.unitOfWork.DbContext.Set<User>().Any(x => x.Email == email);
         }
     }
 }
