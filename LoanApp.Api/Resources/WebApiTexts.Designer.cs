@@ -77,5 +77,32 @@ namespace LoanApp.Web.Api.Resources {
                 return ResourceManager.GetString("Auth_UserAlreadyExists", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid decision. Must be Approved or Rejected.
+        /// </summary>
+        internal static string LoanApplication_Invalid_Decision {
+            get {
+                return ResourceManager.GetString("LoanApplication_Invalid_Decision", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Loan application status must be {0}..
+        /// </summary>
+        internal static string LoanApplication_Wrong_Status {
+            get {
+                return ResourceManager.GetString("LoanApplication_Wrong_Status", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Loan application does not belong to this user..
+        /// </summary>
+        internal static string LoanApplication_Wrong_User {
+            get {
+                return ResourceManager.GetString("LoanApplication_Wrong_User", resourceCulture);
+            }
+        }
     }
 }

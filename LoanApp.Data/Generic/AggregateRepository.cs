@@ -14,14 +14,24 @@ namespace LoanApp.Data.Generic
             this.dbSet = unitOfWork.DbContext.Set<TEntity>();
         }
 
-        public virtual async Task<TEntity?> GetByIdAsync(int id, CancellationToken cancellationToken)
+        public virtual async Task<TEntity?> FindByIdAsync(int id, CancellationToken cancellationToken)
         {
             return await this.dbSet.FindAsync([id], cancellationToken);
         }
 
-        public virtual async Task<IEnumerable<TEntity>> ListAsync(CancellationToken cancellationToken)
+        public virtual async Task<IList<TEntity>> ListAsync(CancellationToken cancellationToken)
         {
-            return await this.dbSet.AsNoTracking().ToListAsync(cancellationToken);
+            IQueryable<TEntity> query = this.dbSet.AsNoTracking();
+
+            var navigations = this.unitOfWork.DbContext.Model.FindEntityType(typeof(TEntity))!
+                                                             .GetNavigations();
+
+            foreach (var navigation in navigations)
+            {
+                query = query.Include(navigation.Name);
+            }
+
+            return await query.ToListAsync(cancellationToken);
         }
 
         public virtual async Task AddAsync(TEntity entity)

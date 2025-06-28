@@ -4,16 +4,24 @@ using LoanApp.Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
 using AutoMapper;
 using LoanApp.Application.Mapping.DTOs;
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
+using LoanApp.Web.Api.Resources;
+using LoanApp.Domain.Enums;
 
 namespace LoanApp.Api.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/loan-applications")]
+    [Authorize]
     public class LoanApplicationsController : ControllerBase
     {
         private readonly ILoanApplicationRepository loanApplicationRepository;
         private readonly IUnitOfWork unitOfWork;
         private readonly IMapper mapper;
+
+        private int CurrentUserId => int.Parse(this.User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+        private string CurrentUserRole => this.User.FindFirst(ClaimTypes.Role)!.Value;
 
         public LoanApplicationsController(
             ILoanApplicationRepository loanApplicationRepository,
@@ -26,20 +34,30 @@ namespace LoanApp.Api.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll(CancellationToken ct)
+        public async Task<IActionResult> GetAllLoanApplications(CancellationToken ct)
         {
-            var loanApplications = await this.loanApplicationRepository.ListAsync(ct);
+            IList<LoanApplication> loanApplications;
 
-            var loanDtos = this.mapper.Map<List<LoanApplicationDto>>(loanApplications);
+            if (this.CurrentUserRole == UserRole.Admin.ToString())
+            {
+                loanApplications = await this.loanApplicationRepository.ListAsync(ct);
+            }
+            else
+            {
+                loanApplications = await this.loanApplicationRepository.GetUserLoanApplications(this.CurrentUserId);
+            }
+
+            var loanDtos = this.mapper.Map<IList<LoanApplicationDto>>(loanApplications)
+                                      .OrderByDescending(l => l.DateApplied);
 
             return Ok(loanDtos);
         }
 
         [HttpGet("{loanApplicationId:int}")]
-        public async Task<IActionResult> GetById(int loanApplicationId, CancellationToken ct)
+        public async Task<IActionResult> GetLoanApplicationById(int loanApplicationId, CancellationToken ct)
         {
-            var loanApplication = await this.loanApplicationRepository.GetByIdAsync(loanApplicationId, ct);
-            if (loanApplication is null)
+            var loanApplication = await this.loanApplicationRepository.FindByIdAsync(loanApplicationId, ct);
+            if (loanApplication is null || loanApplication.UserId != this.CurrentUserId)
             {
                 return NotFound();
             }
@@ -50,52 +68,108 @@ namespace LoanApp.Api.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create(LoanApplicationDto loanApplicationDto, CancellationToken ct)
+        public async Task<IActionResult> CreateLoanApplication(LoanApplicationDto loanApplicationDto, CancellationToken ct)
         {
+            loanApplicationDto.UserId = this.CurrentUserId;
             var loanApplication = this.mapper.Map<LoanApplication>(loanApplicationDto);
 
             await this.loanApplicationRepository.AddAsync(loanApplication, ct);
 
             await this.unitOfWork.SaveChangesAsync(ct);
 
-            return CreatedAtAction(nameof(GetById), new { loanApplicationId = loanApplicationDto.LoanApplicationId }, loanApplicationDto);
+            return Ok();
         }
 
         [HttpPut("{loanApplicationId:int}")]
-        public async Task<IActionResult> Update(int loanApplicationId, LoanApplication LoanApplicationDto, CancellationToken ct)
+        public async Task<IActionResult> UpdateLoanApplication(int loanApplicationId, [FromBody] LoanApplicationDto LoanApplicationDto, CancellationToken ct)
         {
-            var existingLoanApplication = await this.loanApplicationRepository.GetByIdAsync(loanApplicationId, ct);
-            if (existingLoanApplication is null)
+            var loanApplication = await this.loanApplicationRepository.FindByIdAsync(loanApplicationId, ct);
+
+            if (loanApplication is not null)
             {
-                return NotFound();
+                if (loanApplication.Status is LoanApplicationStatus.Pending)
+                {
+                    loanApplication.Amount = LoanApplicationDto.Amount;
+                    loanApplication.TermMonths = LoanApplicationDto.TermMonths;
+                    loanApplication.Purpose = LoanApplicationDto.Purpose;
+
+                    this.loanApplicationRepository.Update(loanApplication);
+
+                    await this.unitOfWork.SaveChangesAsync(ct);
+
+                    return NoContent();
+                }
+
+                return BadRequest(WebApiTexts.LoanApplication_Wrong_Status);
             }
 
-            existingLoanApplication.Amount = LoanApplicationDto.Amount;
-            existingLoanApplication.TermMonths = LoanApplicationDto.TermMonths;
-            existingLoanApplication.Status = LoanApplicationDto.Status;
-
-            this.mapper.Map(LoanApplicationDto, existingLoanApplication);
-            this.loanApplicationRepository.Update(existingLoanApplication);
-
-            await this.unitOfWork.SaveChangesAsync(ct);
-
-            return NoContent();
+            return NotFound();
         }
 
-        [HttpDelete("{loanApplicationId:int}")]
-        public async Task<IActionResult> Delete(int loanApplicationId, CancellationToken ct)
+        [HttpPut("{loanApplicationId:int}/submit")]
+        public async Task<IActionResult> SubmitLoanApplication(int loanApplicationId, CancellationToken ct)
         {
-            var existingLoanApplication = await this.loanApplicationRepository.GetByIdAsync(loanApplicationId, ct);
-            if (existingLoanApplication is null)
+            var loanApplication = await this.loanApplicationRepository.FindByIdAsync(loanApplicationId, ct);
+
+            if (loanApplication is not null)
             {
-                return NotFound();
+                if (loanApplication.UserId == this.CurrentUserId)
+                {
+                    if (loanApplication.Status is LoanApplicationStatus.Pending)
+                    {
+                        loanApplication.Status = LoanApplicationStatus.Submitted;
+
+                        this.loanApplicationRepository.Update(loanApplication);
+
+                        await this.unitOfWork.SaveChangesAsync(ct);
+
+                        return NoContent();
+                    }
+
+                    return BadRequest(string.Format(WebApiTexts.LoanApplication_Wrong_Status, LoanApplicationStatus.Pending.ToString()));
+                }
+
+                return BadRequest(WebApiTexts.LoanApplication_Wrong_User);
             }
 
-            this.loanApplicationRepository.Remove(existingLoanApplication);
+            return NotFound();
+        }
 
-            await this.unitOfWork.SaveChangesAsync(ct);
+        [HttpPut("{loanApplicationId:int}/approve")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> ApproveLoanApplication(int loanApplicationId, CancellationToken ct)
+        {
+            return await this.ReviewLoanApplication(loanApplicationId, LoanApplicationStatus.Approved, ct);
+        }
 
-            return NoContent();
+        [HttpPut("{loanApplicationId:int}/reject")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> RejectLoanApplication(int loanApplicationId, CancellationToken ct)
+        {
+            return await this.ReviewLoanApplication(loanApplicationId, LoanApplicationStatus.Rejected, ct);
+        }
+
+        private async Task<IActionResult> ReviewLoanApplication(int loanApplicationId, LoanApplicationStatus adminDecisionStatus, CancellationToken ct)
+        {
+            var loanApplication = await this.loanApplicationRepository.FindByIdAsync(loanApplicationId, ct);
+
+            if (loanApplication is not null)
+            {
+                if (loanApplication.Status is LoanApplicationStatus.Submitted)
+                {
+                    loanApplication.Status = adminDecisionStatus;
+
+                    this.loanApplicationRepository.Update(loanApplication);
+
+                    await this.unitOfWork.SaveChangesAsync(ct);
+
+                    return NoContent();
+                }
+
+                return BadRequest(string.Format(WebApiTexts.LoanApplication_Wrong_Status, LoanApplicationStatus.Submitted.ToString()));
+            }
+
+            return NotFound();
         }
     }
 }

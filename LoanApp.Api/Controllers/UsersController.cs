@@ -45,7 +45,7 @@ namespace LoanApp.Api.Controllers
         [HttpGet("{userId:int}")]
         public async Task<IActionResult> GetById(int userId, CancellationToken ct)
         {
-            var user = await this.userRepository.GetByIdAsync(userId, ct);
+            var user = await this.userRepository.FindByIdAsync(userId, ct);
             if (user is null)
             {
                 return NotFound();
@@ -74,7 +74,7 @@ namespace LoanApp.Api.Controllers
         [HttpPut("{userId:int}")]
         public async Task<IActionResult> Update(int userId, UserDto userDto, CancellationToken ct)
         {
-            var existingUser = await this.userRepository.GetByIdAsync(userId, ct);
+            var existingUser = await this.userRepository.FindByIdAsync(userId, ct);
             if (existingUser is null)
             {
                 return NotFound();

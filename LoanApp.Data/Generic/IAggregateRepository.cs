@@ -3,9 +3,9 @@
     public interface IAggregateRepository<TEntity>
         where TEntity : class
     {
-        Task<TEntity?> GetByIdAsync(int id, CancellationToken cancellationToken = default);
+        Task<TEntity?> FindByIdAsync(int id, CancellationToken cancellationToken = default);
 
-        Task<IEnumerable<TEntity>> ListAsync(CancellationToken cancellationToken = default);
+        Task<IList<TEntity>> ListAsync(CancellationToken cancellationToken = default);
 
         Task AddAsync(TEntity entity);
 

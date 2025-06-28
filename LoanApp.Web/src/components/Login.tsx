@@ -134,7 +134,6 @@ const Login: React.FC = () => {
       <div className="bg-gray-800 rounded-lg shadow-lg w-full max-w-md">
         <div className="p-6 border-b border-gray-700">
           <h2 className="text-2xl font-semibold text-center">Sign In</h2>
-          <p className="text-gray-400 text-center mt-2">Welcome back to LoanApp</p>
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4">

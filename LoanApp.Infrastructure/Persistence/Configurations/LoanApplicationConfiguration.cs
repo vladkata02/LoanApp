@@ -17,6 +17,9 @@ public class LoanApplicationConfiguration : IEntityTypeConfiguration<LoanApplica
         builder.Property(l => l.TermMonths)
                .IsRequired();
 
+        builder.Property(l => l.Purpose)
+               .IsRequired();
+
         builder.Property(l => l.Status)
                .IsRequired();
 
@@ -34,7 +37,7 @@ public class LoanApplicationConfiguration : IEntityTypeConfiguration<LoanApplica
 
         builder.ToTable("LoanApplications", t =>
         {
-            t.HasCheckConstraint("CK_LoanApplication_Status", "[Status] IN (1, 2, 3)");
+            t.HasCheckConstraint("CK_LoanApplication_Status", "[Status] IN (1, 2, 3, 4)");
         });
     }
 }

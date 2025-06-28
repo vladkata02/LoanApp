@@ -4,6 +4,7 @@ using LoanApp.Infrastructure.Persistance;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace LoanApp.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250628113444_Add_loan_purpose")]
+    partial class Add_loan_purpose
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -81,7 +84,7 @@ namespace LoanApp.Infrastructure.Migrations
 
                     b.ToTable("LoanApplications", null, t =>
                         {
-                            t.HasCheckConstraint("CK_LoanApplication_Status", "[Status] IN (1, 2, 3, 4)");
+                            t.HasCheckConstraint("CK_LoanApplication_Status", "[Status] IN (1, 2, 3)");
                         });
                 });
 

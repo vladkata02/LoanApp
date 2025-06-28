@@ -123,4 +123,13 @@
   <data name="Auth_UserAlreadyExists" xml:space="preserve">
     <value>User with this email already exists.</value>
   </data>
+  <data name="LoanApplication_Invalid_Decision" xml:space="preserve">
+    <value>Invalid decision. Must be Approved or Rejected</value>
+  </data>
+  <data name="LoanApplication_Wrong_Status" xml:space="preserve">
+    <value>Loan application status must be {0}.</value>
+  </data>
+  <data name="LoanApplication_Wrong_User" xml:space="preserve">
+    <value>Loan application does not belong to this user.</value>
+  </data>
 </root>

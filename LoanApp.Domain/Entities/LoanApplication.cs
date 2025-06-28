@@ -12,6 +12,8 @@ namespace LoanApp.Domain.Entities
 
         public int TermMonths { get; set; }
 
+        public required string Purpose { get; set; }
+
         public LoanApplicationStatus Status { get; set; }
 
         public DateTime DateApplied { get; set; }

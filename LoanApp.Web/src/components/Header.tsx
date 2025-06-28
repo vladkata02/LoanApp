@@ -26,10 +26,19 @@ export default function Header() {
               Users
             </Link>
           )}
-          
-          <Link to="/loan-applications" className="px-3 py-2 !text-white hover:text-indigo-300 hover:bg-gray-800 rounded transition-colors duration-200">
-            Loans
-          </Link>
+          {isAuthenticated &&(
+            <Link to="/loan-applications" className="px-3 py-2 !text-white hover:text-indigo-300 hover:bg-gray-800 rounded transition-colors duration-200">
+              Loans
+            </Link>
+         )}
+          {isAdmin && (
+            <Link 
+              to="/metrics" 
+              className="px-3 py-2 !text-white hover:text-indigo-300 hover:bg-gray-800 rounded transition-colors duration-200"
+            >
+              Portfolio Metrics
+            </Link>
+          )}
           
           {isAuthenticated ? (
             <button 
