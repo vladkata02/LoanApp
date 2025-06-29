@@ -1,9 +1,8 @@
-﻿using LoanApp.Infrastructure.Persistance;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
 
-namespace LoanApp.Infrastructure;
+namespace LoanApp.Infrastructure.Persistence;
 
 public class AppDbContextFactory : IDesignTimeDbContextFactory<AppDbContext>
 {

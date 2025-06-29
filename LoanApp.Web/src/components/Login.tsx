@@ -15,7 +15,7 @@ interface ValidationErrors {
 const Login: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { login } = useAuth(); // Use AuthContext login function
+  const { login } = useAuth();
 
   const [formData, setFormData] = useState<LoginRequest>({
     email: '',
@@ -103,7 +103,6 @@ const Login: React.FC = () => {
       const data = await response.json();
       
       if (data.token) {
-        // Use AuthContext login instead of direct localStorage
         login(data.token);
         navigate('/', { 
           state: { message: 'Login successful! Welcome back.' }

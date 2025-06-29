@@ -1,4 +1,4 @@
-﻿using LoanApp.Infrastructure.Persistance;
+﻿using LoanApp.Infrastructure.Persistence;
 
 namespace LoanApp.Data.Generic
 {

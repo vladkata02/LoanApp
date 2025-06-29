@@ -25,7 +25,6 @@ const Notes: React.FC<NotesProps> = ({ notes, isAdmin, loanApplicationId, onAddN
       setNewNote('');
       setShowAddNote(false);
     } catch (error) {
-      console.error('Failed to add note:', error);
       setNoteError('Failed to add note. Please try again.');
     } finally {
       setIsAddingNote(false);
@@ -45,7 +44,8 @@ const Notes: React.FC<NotesProps> = ({ notes, isAdmin, loanApplicationId, onAddN
   const sortedNotes = [...notes].sort((a, b) => 
     new Date(a.sentAt).getTime() - new Date(b.sentAt).getTime()
   );
-  const canAddNotes = isAdmin || (notes.length > 0);
+  
+  const canAddNotes = isAdmin || notes.length > 0;
 
   return (
     <div className="space-y-4">

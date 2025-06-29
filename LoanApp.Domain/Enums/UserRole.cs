@@ -1,7 +1,4 @@
-﻿using System.ComponentModel;
-using System.Security.AccessControl;
-
-namespace LoanApp.Domain.Enums
+﻿namespace LoanApp.Domain.Enums
 {
     public enum UserRole
     {

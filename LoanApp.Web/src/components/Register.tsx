@@ -75,7 +75,6 @@ const Register: React.FC = () => {
     setIsLoading(true);
 
     try {
-      // Choose the endpoint based on registration type
       const endpoint = isInviteRegistration 
         ? `${apiUrl}/api/auth/register/${inviteCode}`
         : `${apiUrl}/api/auth/register`;
@@ -129,9 +128,8 @@ const Register: React.FC = () => {
 
       const data = await response.json();
       
-      // Store the token if provided
       if (data.token) {
-        login(data.token); // Use the auth context instead of localStorage directly
+        login(data.token);
         navigate('/', { 
           state: { 
             message: isInviteRegistration 
@@ -140,7 +138,6 @@ const Register: React.FC = () => {
           } 
         });
       } else {
-        // Fallback - redirect to login
         navigate('/login', { 
           state: { 
             message: isInviteRegistration 

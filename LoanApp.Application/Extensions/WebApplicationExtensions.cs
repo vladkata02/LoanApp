@@ -1,13 +1,16 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 
-namespace LoanApp.Web.Api.Extensions
+namespace LoanApp.Application.Extensions
 {
     public static class WebApplicationExtensions
     {
         public static WebApplicationBuilder AddLoanAppAuthentication(this WebApplicationBuilder builder)
         {
-            Application.Configuration.Application authenticationSettings = new();
+            Configuration.Application authenticationSettings = new();
             builder.Configuration.GetSection("AppSettings:Application").Bind(authenticationSettings);
             var keyString = System.Text.Encoding.UTF8.GetBytes(authenticationSettings.JwtSection.Secret);
 

@@ -1,14 +1,12 @@
 ﻿using AutoMapper;
 using LoanApp.Application.Mapping.DTOs;
 using LoanApp.Data.Generic;
+using LoanApp.Data.Repositories.InviteCodes;
 using LoanApp.Data.Repositories.Users;
-using LoanApp.Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using LoanApp.Data.Repositories.InviteCodes;
-using Microsoft.AspNetCore.Identity.Data;
 
-namespace LoanApp.Api.Controllers
+namespace LoanApp.Web.Api.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
@@ -59,9 +57,9 @@ namespace LoanApp.Api.Controllers
         [HttpPost("invitation")]
         public async Task<IActionResult> CreateInvitationCode(string email)
         {
-            var isEmailFree = this.userRepository.IsEmailFree(email);
+            var isEmailAvailable = await userRepository.IsEmailAvailable(email);
 
-            if (isEmailFree)
+            if (!isEmailAvailable)
             {
                 return Conflict();
             }

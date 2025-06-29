@@ -9,20 +9,6 @@ const Home = () => {
           <p className="mt-4 text-lg text-gray-600">
             Manage and apply for loans with speed, security, and simplicity.
           </p>
-          <div className="mt-8 flex justify-center space-x-4">
-            <a
-              href="/loan-applications"
-              className="px-6 py-3 bg-indigo-600 text-white rounded-lg shadow hover:bg-indigo-700 transition"
-            >
-              Get Started
-            </a>
-            <a
-              href="/users"
-              className="px-6 py-3 border border-gray-300 rounded-lg text-indigo-600 hover:bg-gray-100 transition"
-            >
-              Learn More
-            </a>
-          </div>
         </div>
       </main>
     </div>

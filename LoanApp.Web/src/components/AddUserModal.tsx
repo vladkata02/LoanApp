@@ -126,7 +126,6 @@ const AddUserModal: React.FC<AddUserModalProps> = ({ isOpen, onClose, onInvitati
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text).then(() => {
-      // Could add a toast notification here
     }).catch(() => {
       // Fallback for older browsers
       const textArea = document.createElement('textarea');

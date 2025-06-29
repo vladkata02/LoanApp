@@ -3,6 +3,7 @@ using LoanApp.Application.Services;
 using LoanApp.Data.Generic;
 using LoanApp.Domain.Entities;
 using LoanApp.Domain.Enums;
+using Microsoft.EntityFrameworkCore;
 
 namespace LoanApp.Data.Repositories.Users
 {
@@ -17,7 +18,7 @@ namespace LoanApp.Data.Repositories.Users
 
         public async Task<User?> FindByEmailAsync(string email)
         {
-            return this.unitOfWork.DbContext.Set<User>().FirstOrDefault(x => x.Email == email);
+            return await this.unitOfWork.DbContext.Set<User>().FirstOrDefaultAsync(x => x.Email == email);
         }
 
         public async Task<User> CreateUserAsync(UserDto userDto, UserRole role)
@@ -35,9 +36,9 @@ namespace LoanApp.Data.Repositories.Users
             return user;
         }
 
-        public bool IsEmailFree(string email)
+        public async Task<bool> IsEmailAvailable(string email)
         {
-            return this.unitOfWork.DbContext.Set<User>().Any(x => x.Email == email);
+            return !await this.unitOfWork.DbContext.Set<User>().AnyAsync(x => x.Email == email);
         }
     }
 }

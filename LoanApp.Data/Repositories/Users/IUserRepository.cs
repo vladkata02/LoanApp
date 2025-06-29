@@ -11,6 +11,6 @@ namespace LoanApp.Data.Repositories.Users
 
         Task<User> CreateUserAsync(UserDto userDto, UserRole role);
 
-        bool IsEmailFree(string email);
+        Task<bool> IsEmailAvailable(string email);
     }
 }

@@ -98,7 +98,7 @@ const LoanApplications: React.FC = () => {
         throw new Error(errorText);
       }
 
-      await fetchLoanApplications(); // Refresh the list
+      await fetchLoanApplications();
       setShowDetailsModal(false);
 
     } catch (error: any) {
@@ -122,7 +122,7 @@ const LoanApplications: React.FC = () => {
 
       if (!response.ok) {
         throw new Error('Failed to add note');
-      }
+      } 
 
       // Fetch fresh data
       const endpoint = `${apiUrl}/api/loan-applications`;
@@ -137,7 +137,6 @@ const LoanApplications: React.FC = () => {
         const freshData = await refreshResponse.json();
         setLoanApps(freshData);
         
-        // Update selectedApp with fresh data if it's the same application
         if (selectedApp && selectedApp.loanApplicationId === applicationId) {
           const updatedSelectedApp = freshData.find((app: LoanApplicationDto) => 
             app.loanApplicationId === applicationId

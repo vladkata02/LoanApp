@@ -8,6 +8,6 @@
 
         public string Audience { get; set; } = string.Empty;
 
-        public int ExpiryMinutes { get; set; } = 600;
+        public int ExpiryMinutes { get; set; }
     }
 }

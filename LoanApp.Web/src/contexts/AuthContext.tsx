@@ -32,7 +32,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const payload = JSON.parse(atob(tokenString.split('.')[1]));
       return payload;
     } catch (error) {
-      console.error('Error decoding token:', error);
       return null;
     }
   };

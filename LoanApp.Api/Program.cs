@@ -1,12 +1,12 @@
 using LoanApp.Application;
 using LoanApp.Application.Mapping;
+using LoanApp.Application.Extensions;
 using LoanApp.Data;
-using LoanApp.Infrastructure.Persistance;
-using Microsoft.EntityFrameworkCore;
-using LoanApp.Web.Api.Configurations;
-using LoanApp.Web.Api.Extensions;
 using LoanApp.Data.Seeder;
+using LoanApp.Infrastructure.Persistence;
+using LoanApp.Web.Api.Configurations;
 using Microsoft.AspNetCore.Localization;
+using Microsoft.EntityFrameworkCore;
 using System.Globalization;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -41,20 +41,19 @@ builder.Services.AddCors(options =>
     });
 });
 
-
-
 var app = builder.Build();
+
+app.UseGlobalExceptionHandling();
 
 if (app.Environment.IsDevelopment())
 {
+    using (var scope = app.Services.CreateScope())
+    {
+        var seeder = scope.ServiceProvider.GetRequiredService<IDatabaseSeeder>();
+        await seeder.SeedAdminAsync();
+    }
     app.UseSwagger();
     app.UseSwaggerUI();
-}
-
-using (var scope = app.Services.CreateScope())
-{
-    var seeder = scope.ServiceProvider.GetRequiredService<IDatabaseSeeder>();
-    await seeder.SeedAdminAsync();
 }
 
 app.UseRequestLocalization(options =>
@@ -68,7 +67,6 @@ app.UseRequestLocalization(options =>
 app.UseCors("CorsPolicy");
 
 app.UseHttpsRedirection();
-app.UseExceptionHandler("/error");
 
 app.UseAuthentication();
 app.UseAuthorization();

@@ -1,10 +1,10 @@
 ﻿using LoanApp.Application.Mapping.DTOs;
+using LoanApp.Data.Repositories.LoanApplications;
+using LoanApp.Domain.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using LoanApp.Domain.Enums;
-using LoanApp.Data.Repositories.LoanApplications;
 
-namespace LoanApp.Api.Controllers
+namespace LoanApp.Web.Api.Controllers
 {
     [ApiController]
     [Route("api/portfolio-metrics")]

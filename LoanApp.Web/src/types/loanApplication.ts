@@ -47,7 +47,6 @@ export interface ValidationErrors {
   purpose?: string;
 }
 
-// Add interface for creating notes
 export interface CreateNoteRequest {
   content: string;
   isFromAdmin: boolean;
@@ -62,7 +61,6 @@ export const LoanApplicationStatus = {
 
 export type LoanApplicationStatus = typeof LoanApplicationStatus[keyof typeof LoanApplicationStatus];
 
-// Utility functions for status handling
 export const getStatusText = (status: number): string => {
   switch (status) {
     case LoanApplicationStatus.Pending: return 'Pending';
@@ -81,25 +79,4 @@ export const getStatusColor = (status: number): string => {
     case LoanApplicationStatus.Rejected: return 'bg-red-600';
     default: return 'bg-gray-600';
   }
-};
-
-export const canEditApplication = (status: number): boolean => {
-  return status === LoanApplicationStatus.Pending;
-};
-
-export const canSubmitApplication = (status: number): boolean => {
-  return status === LoanApplicationStatus.Pending;
-};
-
-export const canAdminReview = (status: number): boolean => {
-  return status === LoanApplicationStatus.Submitted;
-};
-
-// Helper function to get sender display name (you'll need user data for this)
-export const getSenderDisplayName = (note: LoanApplicationNoteDto, users?: UserDto[]): string => {
-  if (note.isFromAdmin) {
-    return 'Administrator';
-  }
-  // You might want to look up the user by senderId
-  return 'Customer';
 };

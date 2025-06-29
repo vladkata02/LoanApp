@@ -1,15 +1,16 @@
-﻿using LoanApp.Data.Generic;
+﻿using AutoMapper;
+using LoanApp.Application.Mapping.DTOs;
+using LoanApp.Data.Generic;
 using LoanApp.Data.Repositories.LoanApplications;
 using LoanApp.Domain.Entities;
-using Microsoft.AspNetCore.Mvc;
-using AutoMapper;
-using LoanApp.Application.Mapping.DTOs;
-using Microsoft.AspNetCore.Authorization;
-using System.Security.Claims;
-using LoanApp.Web.Api.Resources;
 using LoanApp.Domain.Enums;
+using LoanApp.Web.Api.Resources;
+using LoanApp.Web.Api.Constants;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
-namespace LoanApp.Api.Controllers
+namespace LoanApp.Web.Api.Controllers
 {
     [ApiController]
     [Route("api/loan-applications")]
@@ -20,8 +21,31 @@ namespace LoanApp.Api.Controllers
         private readonly IUnitOfWork unitOfWork;
         private readonly IMapper mapper;
 
-        private int CurrentUserId => int.Parse(this.User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
-        private string CurrentUserRole => this.User.FindFirst(ClaimTypes.Role)!.Value;
+        private int CurrentUserId
+        {
+            get
+            {
+                var userIdClaim = this.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
+                {
+                    throw new UnauthorizedAccessException("Invalid user authentication token");
+                }
+                return userId;
+            }
+        }
+
+        private string CurrentUserRole
+        {
+            get
+            {
+                var roleClaim = this.User.FindFirst(ClaimTypes.Role)?.Value;
+                if (string.IsNullOrEmpty(roleClaim))
+                {
+                    throw new UnauthorizedAccessException("User role not found in authentication token");
+                }
+                return roleClaim;
+            }
+        }
 
         public LoanApplicationsController(
             ILoanApplicationRepository loanApplicationRepository,
@@ -38,7 +62,7 @@ namespace LoanApp.Api.Controllers
         {
             IList<LoanApplication> loanApplications;
 
-            if (this.CurrentUserRole == UserRole.Admin.ToString())
+            if (this.CurrentUserRole == Roles.Admin)
             {
                 loanApplications = await this.loanApplicationRepository.ListAsync(ct);
             }
@@ -57,9 +81,14 @@ namespace LoanApp.Api.Controllers
         public async Task<IActionResult> GetLoanApplicationById(int loanApplicationId, CancellationToken ct)
         {
             var loanApplication = await this.loanApplicationRepository.FindByIdAsync(loanApplicationId, ct);
-            if (loanApplication is null || loanApplication.UserId != this.CurrentUserId)
+            if (loanApplication is null)
             {
                 return NotFound();
+            }
+
+            if (this.CurrentUserRole != Roles.Admin && loanApplication.UserId != this.CurrentUserId)
+            {
+                return Forbid();
             }
 
             var loanApplicationDto = this.mapper.Map<LoanApplicationDto>(loanApplication);
@@ -87,6 +116,11 @@ namespace LoanApp.Api.Controllers
 
             if (loanApplication is not null)
             {
+                if (loanApplication.UserId != this.CurrentUserId)
+                {
+                    return Forbid();
+                }
+
                 if (loanApplication.Status is LoanApplicationStatus.Pending)
                 {
                     loanApplication.Amount = LoanApplicationDto.Amount;
@@ -136,14 +170,14 @@ namespace LoanApp.Api.Controllers
         }
 
         [HttpPut("{loanApplicationId:int}/approve")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = Roles.Admin)]
         public async Task<IActionResult> ApproveLoanApplication(int loanApplicationId, CancellationToken ct)
         {
             return await this.ReviewLoanApplication(loanApplicationId, LoanApplicationStatus.Approved, ct);
         }
 
         [HttpPut("{loanApplicationId:int}/reject")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = Roles.Admin)]
         public async Task<IActionResult> RejectLoanApplication(int loanApplicationId, CancellationToken ct)
         {
             return await this.ReviewLoanApplication(loanApplicationId, LoanApplicationStatus.Rejected, ct);

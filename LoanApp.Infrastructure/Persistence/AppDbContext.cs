@@ -1,7 +1,7 @@
 ﻿using LoanApp.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
-namespace LoanApp.Infrastructure.Persistance
+namespace LoanApp.Infrastructure.Persistence
 {
     public class AppDbContext : DbContext
     {
