@@ -8,5 +8,7 @@ namespace LoanApp.Data.Repositories.LoanApplications
         Task<IList<LoanApplication>> GetUserLoanApplications(int userId);
 
         Task<IList<LoanApplication>> GetLoanApplicationsBetweenDates(DateTime startDate, DateTime endDate);
+
+        Task AddNoteAsync(LoanApplicationNote loanApplicationNote, CancellationToken ct);
     }
 }

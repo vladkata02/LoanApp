@@ -1,14 +1,14 @@
 export interface LoanApplicationNoteDto {
-    loanApplicationIdNoteId: number;
-    loanApplicationId: number;
-    noteText: string;
-    isAdminNote: boolean;
-    createdDate: string;
-    createdBy: string;
+  loanApplicationNoteId: number;
+  loanApplicationId: number;
+  senderId: number;
+  content: string;
+  sentAt: string;
+  isFromAdmin: boolean;
 }
 
 export interface UserDto {
-  id: number;
+  userId: number;
   email: string;
   firstName?: string;
   lastName?: string;
@@ -47,6 +47,12 @@ export interface ValidationErrors {
   purpose?: string;
 }
 
+// Add interface for creating notes
+export interface CreateNoteRequest {
+  content: string;
+  isFromAdmin: boolean;
+}
+
 export const LoanApplicationStatus = {
   Pending: 1,
   Submitted: 2,
@@ -75,4 +81,25 @@ export const getStatusColor = (status: number): string => {
     case LoanApplicationStatus.Rejected: return 'bg-red-600';
     default: return 'bg-gray-600';
   }
+};
+
+export const canEditApplication = (status: number): boolean => {
+  return status === LoanApplicationStatus.Pending;
+};
+
+export const canSubmitApplication = (status: number): boolean => {
+  return status === LoanApplicationStatus.Pending;
+};
+
+export const canAdminReview = (status: number): boolean => {
+  return status === LoanApplicationStatus.Submitted;
+};
+
+// Helper function to get sender display name (you'll need user data for this)
+export const getSenderDisplayName = (note: LoanApplicationNoteDto, users?: UserDto[]): string => {
+  if (note.isFromAdmin) {
+    return 'Administrator';
+  }
+  // You might want to look up the user by senderId
+  return 'Customer';
 };

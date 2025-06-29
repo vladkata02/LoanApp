@@ -21,7 +21,5 @@ namespace LoanApp.Application.Mapping.DTOs
 
         [Required]
         public bool IsFromAdmin { get; set; }
-
-        public LoanApplicationDto LoanApplication { get; set; } = null!;
     }
 }

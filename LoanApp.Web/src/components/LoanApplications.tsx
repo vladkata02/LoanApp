@@ -91,7 +91,6 @@ const LoanApplications: React.FC = () => {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(status), // Send just the status enum value
       });
 
       if (!response.ok) {
@@ -104,6 +103,54 @@ const LoanApplications: React.FC = () => {
 
     } catch (error: any) {
       setError(error.message);
+    }
+  };
+
+  const handleAddNote = async (applicationId: number, content: string, isFromAdmin: boolean) => {
+    try {
+      const response = await fetch(`${apiUrl}/api/loan-applications/${applicationId}/notes`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          content,
+          isFromAdmin
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to add note');
+      }
+
+      // Fetch fresh data
+      const endpoint = `${apiUrl}/api/loan-applications`;
+      const refreshResponse = await fetch(endpoint, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (refreshResponse.ok) {
+        const freshData = await refreshResponse.json();
+        setLoanApps(freshData);
+        
+        // Update selectedApp with fresh data if it's the same application
+        if (selectedApp && selectedApp.loanApplicationId === applicationId) {
+          const updatedSelectedApp = freshData.find((app: LoanApplicationDto) => 
+            app.loanApplicationId === applicationId
+          );
+          if (updatedSelectedApp) {
+            setSelectedApp(updatedSelectedApp);
+          }
+        }
+      }
+
+    } catch (error: any) {
+      setError(error.message);
+      throw error;
     }
   };
 
@@ -261,13 +308,11 @@ const LoanApplications: React.FC = () => {
 
         <LoanApplicationDetailsModal
           isOpen={showDetailsModal}
-          onClose={() => {
-        setShowDetailsModal(false);
-        setSelectedApp(null);
-          }}
+          onClose={() => setShowDetailsModal(false)}
           application={selectedApp}
           isAdmin={isAdmin}
           onUpdateStatus={handleUpdateStatus}
+          onAddNote={handleAddNote}
         />
       </div>
     </div>

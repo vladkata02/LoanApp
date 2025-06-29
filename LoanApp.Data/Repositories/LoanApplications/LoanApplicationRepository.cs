@@ -25,5 +25,14 @@ namespace LoanApp.Data.Repositories.LoanApplications
             return await this.unitOfWork.DbContext.Set<LoanApplication>().Where(la => la.DateApplied >= startDate && la.DateApplied <= endDate)
                                                                          .ToListAsync();
         }
+
+        public async Task AddNoteAsync(LoanApplicationNote loanApplicationNote, CancellationToken ct)
+        {
+            var loanApplication = await base.FindByIdAsync(loanApplicationNote.LoanApplicationId, ct);
+
+            loanApplication!.Notes.Add(loanApplicationNote);
+
+            await this.unitOfWork.SaveChangesAsync();
+        }
     }
 }

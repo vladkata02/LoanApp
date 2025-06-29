@@ -3,6 +3,7 @@ import {
   type LoanApplicationDto, 
   type CreateLoanApplicationRequest, 
   type ValidationErrors,
+  LoanApplicationStatus,
 } from '../types/loanApplication';
 
 interface LoanApplicationModalProps {
@@ -169,6 +170,7 @@ const LoanApplicationModal: React.FC<LoanApplicationModalProps> = ({
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
+        body: JSON.stringify(LoanApplicationStatus.Submitted),
       });
 
       if (!response.ok) {
@@ -208,8 +210,8 @@ const LoanApplicationModal: React.FC<LoanApplicationModalProps> = ({
 
   if (!isOpen) return null;
 
-  const canEdit = !isEditMode || (editApplication?.status === 1); 
-  const canSubmit = isEditMode && editApplication?.status === 1;
+  const canEdit = !isEditMode || (editApplication?.status === LoanApplicationStatus.Pending); 
+  const canSubmit = isEditMode && editApplication?.status === LoanApplicationStatus.Pending;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">

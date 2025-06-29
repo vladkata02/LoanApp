@@ -149,6 +149,21 @@ namespace LoanApp.Api.Controllers
             return await this.ReviewLoanApplication(loanApplicationId, LoanApplicationStatus.Rejected, ct);
         }
 
+        [HttpPost("{loanApplicationId:int}/notes")]
+        public async Task<IActionResult> CreateLoanApplicationNote(int loanApplicationId, LoanApplicationNoteDto loanApplicationNoteDto, CancellationToken ct)
+        {
+            loanApplicationNoteDto.SenderId = this.CurrentUserId;
+            loanApplicationNoteDto.LoanApplicationId = loanApplicationId;
+
+            var loanApplicationNote = this.mapper.Map<LoanApplicationNote>(loanApplicationNoteDto);
+
+            await this.loanApplicationRepository.AddNoteAsync(loanApplicationNote, ct);
+
+            await this.unitOfWork.SaveChangesAsync(ct);
+
+            return Ok();
+        }
+
         private async Task<IActionResult> ReviewLoanApplication(int loanApplicationId, LoanApplicationStatus adminDecisionStatus, CancellationToken ct)
         {
             var loanApplication = await this.loanApplicationRepository.FindByIdAsync(loanApplicationId, ct);

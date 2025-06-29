@@ -11,9 +11,7 @@ namespace LoanApp.Application.Mapping
             // Domain -> DTO
             this.CreateMap<LoanApplication, LoanApplicationDto>().ReverseMap();
             this.CreateMap<User, UserDto>();
-            this.CreateMap<LoanApplicationNote, LoanApplicationNoteDto>();
-
-            //this.CreateMap<UpdateLoanApplicationDto, LoanApplication>();
+            this.CreateMap<LoanApplicationNote, LoanApplicationNoteDto>().ReverseMap();
         }
     }
 }

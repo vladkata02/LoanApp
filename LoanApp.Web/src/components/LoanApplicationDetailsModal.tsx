@@ -5,13 +5,15 @@ import {
   getStatusText, 
   getStatusColor,
 } from '../types/loanApplication';
+import Notes from './LoanApplicationNote';
 
 interface LoanApplicationDetailsModalProps {
   isOpen: boolean;
   onClose: () => void;
   application: LoanApplicationDto | null;
   isAdmin: boolean;
-  onUpdateStatus: (loanApplicationId: number, status: number) => void;
+  onUpdateStatus: (loanApplicationId: number, status: number, isAdminDecision?: boolean) => void;
+  onAddNote: (applicationId: number, content: string, isFromAdmin: boolean) => Promise<void>; // Keep your existing signature
 }
 
 const LoanApplicationDetailsModal: React.FC<LoanApplicationDetailsModalProps> = ({
@@ -19,8 +21,15 @@ const LoanApplicationDetailsModal: React.FC<LoanApplicationDetailsModalProps> = 
   onClose,
   application,
   isAdmin,
-  onUpdateStatus
+  onUpdateStatus,
+  onAddNote
 }) => {
+  // Create a wrapper function that matches what Notes expects
+  const handleAddNote = async (content: string, isFromAdmin: boolean) => {
+    if (!application?.loanApplicationId) return;
+    await onAddNote(application.loanApplicationId, content, isFromAdmin);
+  };
+
   if (!isOpen || !application) return null;
 
   return (
@@ -106,6 +115,14 @@ const LoanApplicationDetailsModal: React.FC<LoanApplicationDetailsModalProps> = 
               </div>
             </div>
           )}
+
+          {/* Notes Component */}
+          <Notes
+            notes={application.notes || []}
+            isAdmin={isAdmin}
+            loanApplicationId={application.loanApplicationId}
+            onAddNote={handleAddNote} // Use the wrapper function
+          />
         </div>
 
         <div className="p-6 border-t border-gray-700 flex justify-end">
