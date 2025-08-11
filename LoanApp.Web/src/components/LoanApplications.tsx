@@ -225,7 +225,7 @@ const LoanApplications: React.FC = () => {
           <div className="flex-1">
             <div className="flex items-center gap-4 mb-4">
               <h3 className="text-xl font-semibold">
-            ${app.amount.toLocaleString()}
+            €{app.amount.toLocaleString()}
               </h3>
               <span className={`px-3 py-1 rounded-full text-sm font-medium text-white ${getStatusColor(app.status)}`}>
             {getStatusText(app.status)}

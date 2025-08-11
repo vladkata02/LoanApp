@@ -58,7 +58,7 @@ const LoanApplicationDetailsModal: React.FC<LoanApplicationDetailsModalProps> = 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <p className="text-gray-400 text-sm">Amount</p>
-                <p className="text-2xl font-bold text-white">${application.amount.toLocaleString()}</p>
+                <p className="text-2xl font-bold text-white">€{application.amount.toLocaleString()}</p>
               </div>
               <div>
                 <p className="text-gray-400 text-sm">Term</p>

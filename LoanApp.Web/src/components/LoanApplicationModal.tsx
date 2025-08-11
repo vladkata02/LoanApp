@@ -54,9 +54,9 @@ const LoanApplicationModal: React.FC<LoanApplicationModalProps> = ({
     if (!applicationForm.amount || applicationForm.amount <= 0) {
       errors.amount = 'Amount must be greater than 0';
     } else if (applicationForm.amount < 1000) {
-      errors.amount = 'Minimum loan amount is $1,000';
+      errors.amount = 'Minimum loan amount is €1,000';
     } else if (applicationForm.amount > 100000) {
-      errors.amount = 'Maximum loan amount is $100,000';
+      errors.amount = 'Maximum loan amount is €100,000';
     }
 
     if (!applicationForm.termMonths || applicationForm.termMonths <= 0) {
