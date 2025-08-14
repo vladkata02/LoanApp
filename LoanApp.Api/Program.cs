@@ -21,7 +21,7 @@ builder.AddLoanAppAuthentication();
 services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(config.GetConnectionString("DefaultConnection")));
 
-
+services.AddGrpc();
 services.AddData();
 services.AddApplicationServices();
 services.AddControllers();

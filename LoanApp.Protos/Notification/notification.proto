@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+option csharp_namespace = "LoanApp.Protos";
+
+package notification;
+
+service NotificationService {
+  rpc SendNotification (NotificationRequest) returns (NotificationReply);
+}
+
+message NotificationRequest {
+  int64 loanApplicationId = 1;
+  int64 recipientId = 2;
+  string message = 3;
+}
+
+message NotificationReply { 
+  bool success = 1;
+}

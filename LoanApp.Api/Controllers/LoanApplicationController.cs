@@ -9,6 +9,7 @@ using LoanApp.Web.Api.Constants;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using LoanApp.Application.Services.Grpc.Notification;
 
 namespace LoanApp.Web.Api.Controllers
 {
@@ -18,6 +19,7 @@ namespace LoanApp.Web.Api.Controllers
     public class LoanApplicationsController : ControllerBase
     {
         private readonly ILoanApplicationRepository loanApplicationRepository;
+        private readonly INotificationGrpcClient notificationGrpcClient;
         private readonly IUnitOfWork unitOfWork;
         private readonly IMapper mapper;
 
@@ -49,10 +51,12 @@ namespace LoanApp.Web.Api.Controllers
 
         public LoanApplicationsController(
             ILoanApplicationRepository loanApplicationRepository,
+            INotificationGrpcClient notificationGrpcClient,
             IUnitOfWork unitOfWork,
             IMapper mapper)
         {
             this.loanApplicationRepository = loanApplicationRepository;
+            this.notificationGrpcClient = notificationGrpcClient;
             this.unitOfWork = unitOfWork;
             this.mapper = mapper;
         }
@@ -173,7 +177,10 @@ namespace LoanApp.Web.Api.Controllers
         [Authorize(Roles = Roles.Admin)]
         public async Task<IActionResult> ApproveLoanApplication(int loanApplicationId, CancellationToken ct)
         {
-            return await this.ReviewLoanApplication(loanApplicationId, LoanApplicationStatus.Approved, ct);
+            var result = await this.ReviewLoanApplication(loanApplicationId, LoanApplicationStatus.Approved, ct);
+            await this.notificationGrpcClient.SendNotificationAsync(loanApplicationId, this.CurrentUserId, WebApiTexts.LoanApplication_Notification_Approved);
+
+            return result;
         }
 
         [HttpPut("{loanApplicationId:int}/reject")]

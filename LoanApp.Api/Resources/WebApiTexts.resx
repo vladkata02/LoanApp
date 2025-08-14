@@ -126,6 +126,9 @@
   <data name="LoanApplication_Invalid_Decision" xml:space="preserve">
     <value>Invalid decision. Must be Approved or Rejected</value>
   </data>
+  <data name="LoanApplication_Notification_Approved" xml:space="preserve">
+    <value>Your loan application has been approved</value>
+  </data>
   <data name="LoanApplication_Wrong_Status" xml:space="preserve">
     <value>Loan application status must be {0}.</value>
   </data>

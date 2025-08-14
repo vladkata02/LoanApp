@@ -88,6 +88,15 @@ namespace LoanApp.Web.Api.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Your loan application has been approved.
+        /// </summary>
+        internal static string LoanApplication_Notification_Approved {
+            get {
+                return ResourceManager.GetString("LoanApplication_Notification_Approved", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Loan application status must be {0}..
         /// </summary>
         internal static string LoanApplication_Wrong_Status {
