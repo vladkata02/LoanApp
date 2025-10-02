@@ -73,4 +73,11 @@ app.UseAuthorization();
 
 app.MapControllers();
 
+// Health check endpoint for Docker
+app.MapGet("/api/health", () => new { 
+    status = "healthy", 
+    timestamp = DateTime.UtcNow,
+    version = "1.0.0" 
+});
+
 app.Run();
