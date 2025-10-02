@@ -1,4 +1,6 @@
-﻿namespace LoanApp.Web.Api.Configurations;
+﻿using LoanApp.Application.Configuration;
+
+namespace LoanApp.Web.Api.Configurations;
 
 public static class Extensions
 {
@@ -7,6 +9,7 @@ public static class Extensions
         builder.RegisterConfiguration<AppSettings>();
         builder.RegisterConfiguration<AppSettings, Application.Configuration.Application>();
         builder.RegisterConfiguration<AppSettings, Data.Configuration.Data>();
+        builder.RegisterConfiguration<AppSettings, WebApi>();
 
         return builder;
     }

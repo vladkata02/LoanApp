@@ -1,12 +1,14 @@
-﻿using LoanApp.Application.Mapping.DTOs;
-using LoanApp.Application.Services;
+﻿using LoanApp.Application.Configuration;
+using LoanApp.Application.Mapping.DTOs;
+using LoanApp.Application.Services.Auth;
 using LoanApp.Data.Generic;
 using LoanApp.Data.Repositories.InviteCodes;
 using LoanApp.Data.Repositories.Users;
 using LoanApp.Web.Api.Resources;
 using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
-
+using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.Options;
 namespace LoanApp.Web.Api.Controllers
 {
     [ApiController]
@@ -17,17 +19,25 @@ namespace LoanApp.Web.Api.Controllers
         private readonly IAuthService authService;
         private readonly IUserRepository userRepository;
         private readonly IInviteCodeRepository inviteCodeRepository;
+        private readonly WebApi appsettings;
+        private readonly IDistributedCache cache;
 
         public AuthController(
             IUnitOfWork unitOfWork,
             IAuthService authService,
             IUserRepository userRepository,
-            IInviteCodeRepository inviteCodeRepository)
+            IInviteCodeRepository inviteCodeRepository,
+            IAccessContext accessContext,
+            IOptions<WebApi> options,
+            IDistributedCache cache
+            )
         {
             this.unitOfWork = unitOfWork;
             this.authService = authService;
             this.userRepository = userRepository;
             this.inviteCodeRepository = inviteCodeRepository;
+            this.appsettings = options.Value;
+            this.cache = cache;
         }
 
         [HttpPost("login")]
@@ -44,7 +54,13 @@ namespace LoanApp.Web.Api.Controllers
 
             if (isPasswordValid)
             {
-                var token = this.authService.GenerateJwtToken(user.UserId, user.Email, user.Role);
+                var token = await this.authService.GenerateJwtTokenAsync(user.UserId, user.Email, user.Role);
+
+                await cache.SetStringAsync($"session:{token}", user.UserId.ToString(),
+                    new DistributedCacheEntryOptions
+                    {
+                        AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(this.appsettings.CacheDurationInHours)
+                    });
 
                 return Ok(new { token });
             }
@@ -64,7 +80,7 @@ namespace LoanApp.Web.Api.Controllers
 
             var user = await this.userRepository.CreateUserAsync(userDto, Domain.Enums.UserRole.Customer);
 
-            var token = this.authService.GenerateJwtToken(user.UserId, user.Email, user.Role);
+            var token = this.authService.GenerateJwtTokenAsync(user.UserId, user.Email, user.Role);
 
             return Ok(new { token });
         }
@@ -92,12 +108,26 @@ namespace LoanApp.Web.Api.Controllers
 
                 await this.unitOfWork.SaveChangesAsync();
 
-                var token = this.authService.GenerateJwtToken(user.UserId, user.Email, user.Role);
+                var token = this.authService.GenerateJwtTokenAsync(user.UserId, user.Email, user.Role);
 
                 return Ok(new { token });
             }
 
             return Unauthorized(new { message = WebApiTexts.Auth_InvalidCredentials });
+        }
+
+        [HttpPost("logout")]
+        public async Task<IActionResult> Logout()
+        {
+            var jti = User.FindFirst("jti")?.Value;
+            if (string.IsNullOrEmpty(jti))
+            {
+                return BadRequest();
+            }
+
+            await cache.RemoveAsync($"session:{jti}");
+
+            return NoContent();
         }
     }
 }

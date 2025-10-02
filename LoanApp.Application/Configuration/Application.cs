@@ -4,6 +4,6 @@
     {
         public JwtSection JwtSection { get; set; } = null!;
 
-        public Grpc Grpc { get; set; } = null!;
+        public GrpcApi GrpcApiSection { get; set; } = null!;
     }
 }

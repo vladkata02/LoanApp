@@ -1,6 +1,6 @@
 ﻿namespace LoanApp.Application.Configuration
 {
-    public class Grpc
+    public class GrpcApi
     {
         public string NotificationServiceUrl { get; set; } = string.Empty;
     }

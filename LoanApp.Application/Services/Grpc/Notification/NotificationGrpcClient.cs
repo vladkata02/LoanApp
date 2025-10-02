@@ -11,7 +11,7 @@ namespace LoanApp.Application.Services.Grpc.Notification
 
         public NotificationGrpcClient(IOptions<Configuration.Application> options)
         {
-            var channel = GrpcChannel.ForAddress(options.Value.Grpc.NotificationServiceUrl);
+            var channel = GrpcChannel.ForAddress(options.Value.GrpcApiSection.NotificationServiceUrl);
             this.client = new NotificationService.NotificationServiceClient(channel);
         }
 

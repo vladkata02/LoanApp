@@ -1,6 +1,6 @@
 ﻿using LoanApp.Domain.Enums;
 using System;
-namespace LoanApp.Application.Services
+namespace LoanApp.Application.Services.Auth
 {
     public interface IAuthService
     {
@@ -8,6 +8,6 @@ namespace LoanApp.Application.Services
 
         bool IsPasswordValid(string password, string passwordHash);
 
-        string GenerateJwtToken(int userId, string email, UserRole role);
+        Task<string> GenerateJwtTokenAsync(int userId, string email, UserRole role);
     }
 }

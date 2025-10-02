@@ -1,4 +1,4 @@
-﻿using LoanApp.Application.Services;
+﻿using LoanApp.Application.Services.Auth;
 using LoanApp.Data.Configuration;
 using LoanApp.Data.Generic;
 using LoanApp.Data.Repositories.Users;

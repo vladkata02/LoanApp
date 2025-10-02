@@ -1,5 +1,5 @@
 ﻿using LoanApp.Application.Mapping.DTOs;
-using LoanApp.Application.Services;
+using LoanApp.Application.Services.Auth;
 using LoanApp.Data.Generic;
 using LoanApp.Domain.Entities;
 using LoanApp.Domain.Enums;

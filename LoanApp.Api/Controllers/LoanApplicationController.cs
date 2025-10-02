@@ -8,8 +8,8 @@ using LoanApp.Web.Api.Resources;
 using LoanApp.Web.Api.Constants;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
 using LoanApp.Application.Services.Grpc.Notification;
+using LoanApp.Application.Services.Auth;
 
 namespace LoanApp.Web.Api.Controllers
 {
@@ -20,43 +20,20 @@ namespace LoanApp.Web.Api.Controllers
     {
         private readonly ILoanApplicationRepository loanApplicationRepository;
         private readonly INotificationGrpcClient notificationGrpcClient;
+        private readonly IAccessContext accessContext;
         private readonly IUnitOfWork unitOfWork;
         private readonly IMapper mapper;
-
-        private int CurrentUserId
-        {
-            get
-            {
-                var userIdClaim = this.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
-                {
-                    throw new UnauthorizedAccessException("Invalid user authentication token");
-                }
-                return userId;
-            }
-        }
-
-        private string CurrentUserRole
-        {
-            get
-            {
-                var roleClaim = this.User.FindFirst(ClaimTypes.Role)?.Value;
-                if (string.IsNullOrEmpty(roleClaim))
-                {
-                    throw new UnauthorizedAccessException("User role not found in authentication token");
-                }
-                return roleClaim;
-            }
-        }
 
         public LoanApplicationsController(
             ILoanApplicationRepository loanApplicationRepository,
             INotificationGrpcClient notificationGrpcClient,
+            IAccessContext accessContext,
             IUnitOfWork unitOfWork,
             IMapper mapper)
         {
             this.loanApplicationRepository = loanApplicationRepository;
             this.notificationGrpcClient = notificationGrpcClient;
+            this.accessContext = accessContext;
             this.unitOfWork = unitOfWork;
             this.mapper = mapper;
         }
@@ -66,13 +43,13 @@ namespace LoanApp.Web.Api.Controllers
         {
             IList<LoanApplication> loanApplications;
 
-            if (this.CurrentUserRole == Roles.Admin)
+            if (this.accessContext.Role == Roles.Admin)
             {
                 loanApplications = await this.loanApplicationRepository.ListAsync(ct);
             }
             else
             {
-                loanApplications = await this.loanApplicationRepository.GetUserLoanApplications(this.CurrentUserId);
+                loanApplications = await this.loanApplicationRepository.GetUserLoanApplications(this.accessContext.UserId);
             }
 
             var loanDtos = this.mapper.Map<IList<LoanApplicationDto>>(loanApplications)
@@ -90,7 +67,7 @@ namespace LoanApp.Web.Api.Controllers
                 return NotFound();
             }
 
-            if (this.CurrentUserRole != Roles.Admin && loanApplication.UserId != this.CurrentUserId)
+            if (this.accessContext.Role != Roles.Admin && loanApplication.UserId != this.accessContext.UserId)
             {
                 return Forbid();
             }
@@ -103,7 +80,7 @@ namespace LoanApp.Web.Api.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateLoanApplication(LoanApplicationDto loanApplicationDto, CancellationToken ct)
         {
-            loanApplicationDto.UserId = this.CurrentUserId;
+            loanApplicationDto.UserId = this.accessContext.UserId;
             var loanApplication = this.mapper.Map<LoanApplication>(loanApplicationDto);
 
             await this.loanApplicationRepository.AddAsync(loanApplication, ct);
@@ -120,7 +97,7 @@ namespace LoanApp.Web.Api.Controllers
 
             if (loanApplication is not null)
             {
-                if (loanApplication.UserId != this.CurrentUserId)
+                if (loanApplication.UserId != this.accessContext.UserId)
                 {
                     return Forbid();
                 }
@@ -151,7 +128,7 @@ namespace LoanApp.Web.Api.Controllers
 
             if (loanApplication is not null)
             {
-                if (loanApplication.UserId == this.CurrentUserId)
+                if (loanApplication.UserId == this.accessContext.UserId)
                 {
                     if (loanApplication.Status is LoanApplicationStatus.Pending)
                     {
@@ -178,7 +155,7 @@ namespace LoanApp.Web.Api.Controllers
         public async Task<IActionResult> ApproveLoanApplication(int loanApplicationId, CancellationToken ct)
         {
             var result = await this.ReviewLoanApplication(loanApplicationId, LoanApplicationStatus.Approved, ct);
-            await this.notificationGrpcClient.SendNotificationAsync(loanApplicationId, this.CurrentUserId, WebApiTexts.LoanApplication_Notification_Approved);
+            await this.notificationGrpcClient.SendNotificationAsync(loanApplicationId, this.accessContext.UserId, WebApiTexts.LoanApplication_Notification_Approved);
 
             return result;
         }
@@ -193,7 +170,7 @@ namespace LoanApp.Web.Api.Controllers
         [HttpPost("{loanApplicationId:int}/notes")]
         public async Task<IActionResult> CreateLoanApplicationNote(int loanApplicationId, LoanApplicationNoteDto loanApplicationNoteDto, CancellationToken ct)
         {
-            loanApplicationNoteDto.SenderId = this.CurrentUserId;
+            loanApplicationNoteDto.SenderId = this.accessContext.UserId;
             loanApplicationNoteDto.LoanApplicationId = loanApplicationId;
 
             var loanApplicationNote = this.mapper.Map<LoanApplicationNote>(loanApplicationNoteDto);

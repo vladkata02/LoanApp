@@ -1,20 +1,23 @@
-﻿using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
-using LoanApp.Application.Configuration;
+﻿using LoanApp.Application.Configuration;
 using LoanApp.Domain.Enums;
+using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
 
-namespace LoanApp.Application.Services
+namespace LoanApp.Application.Services.Auth
 {
     public class AuthService : IAuthService
     {
         private readonly JwtSection jwtSettings;
+        private readonly IDistributedCache cache;
 
-        public AuthService(IOptions<Configuration.Application> options)
+        public AuthService(IOptions<Configuration.Application> options, IDistributedCache cache)
         {
-            this.jwtSettings = options.Value.JwtSection;
+            jwtSettings = options.Value.JwtSection;
+            this.cache = cache;
         }
 
         public string HashPassword(string password)
@@ -25,7 +28,7 @@ namespace LoanApp.Application.Services
             }
 
             if (password.Length > 128)
-            { 
+            {
                 throw new ArgumentException("Password too long", nameof(password));
             }
 
@@ -49,7 +52,7 @@ namespace LoanApp.Application.Services
             }
         }
 
-        public string GenerateJwtToken(int userId, string email, UserRole role)
+        public async Task<string> GenerateJwtTokenAsync(int userId, string email, UserRole role)
         {
             if (string.IsNullOrWhiteSpace(jwtSettings.Secret) || jwtSettings.Secret.Length < 32)
             {
@@ -71,6 +74,12 @@ namespace LoanApp.Application.Services
                 claims: claims,
                 expires: DateTime.UtcNow.AddMinutes(jwtSettings.ExpiryMinutes),
                 signingCredentials: new SigningCredentials(key, SecurityAlgorithms.HmacSha256));
+
+            await this.cache.SetStringAsync($"session:{Guid.NewGuid().ToString()}", userId.ToString(),
+                new DistributedCacheEntryOptions
+                {
+                    AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1)
+                });
 
             return new JwtSecurityTokenHandler().WriteToken(token);
         }

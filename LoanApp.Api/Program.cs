@@ -14,6 +14,7 @@ var builder = WebApplication.CreateBuilder(args);
 var config = builder.Configuration;
 var services = builder.Services;
 var allowedOrigins = config.GetSection("AllowedOrigins").Get<string[]>();
+var cacheProvider = config.GetSection("WebApi").GetValue<string>("CacheProvider");
 
 builder.RegisterConfigurations();
 builder.AddLoanAppAuthentication();
@@ -23,9 +24,29 @@ services.AddDbContext<AppDbContext>(options =>
 
 services.AddGrpc();
 services.AddData();
-services.AddApplicationServices();
+services.AddHttpContextAccessor();
+services.AddApplicationServices ();
 services.AddControllers();
 services.AddEndpointsApiExplorer();
+
+if (string.Equals(cacheProvider, "Redis", StringComparison.OrdinalIgnoreCase))
+{
+    services.AddStackExchangeRedisCache(options =>
+    {
+        options.Configuration = config.GetSection("WebApi:Redis:Configuration").Value;
+        options.InstanceName = config.GetSection("WebApi:Redis:InstanceName").Value;
+    });
+}
+else
+{
+    services.AddDistributedMemoryCache();
+}
+services.AddSession(options =>
+{
+    options.Cookie.Name = ".LoanApp.Session";
+    options.IdleTimeout = TimeSpan.FromHours(config.GetSection("SessionDurationInHours").Get<int>());
+    options.Cookie.IsEssential = true;
+});
 services.AddSwaggerGen();
 services.AddAutoMapper(typeof(MappingProfile));
 services.AddLocalization(options => options.ResourcesPath = "Resources");
@@ -72,5 +93,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+app.UseSession();
 
 app.Run();
