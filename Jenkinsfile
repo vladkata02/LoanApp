@@ -8,8 +8,8 @@ pipeline {
         API_URL = "'http://localhost:8080'"
         FRONTEND_URL = "'http://localhost:8081'"
 
-        // Docker Compose
-        COMPOSE_PROJECT_NAME = "loanapp-${env.BRANCH_NAME}"
+        // Docker Compose project name (fallback when BRANCH_NAME is null)
+        COMPOSE_PROJECT_NAME = "loanapp-${env.BRANCH_NAME ?: 'local'}"
     }
 
     stages {
@@ -83,7 +83,7 @@ pipeline {
         stage('Start Database') {
             steps {
                 echo 'Starting database container...'
-                sh 'docker-compose up -d database'
+                sh 'docker compose up -d database'
                 
                 echo 'Waiting for database to be ready...'
                 script {
@@ -91,7 +91,7 @@ pipeline {
                         waitUntil {
                             script {
                                 withCredentials([string(credentialsId: 'loanapp-db-password', variable: 'DB_PASSWORD')]) {
-                                    def result = sh(script: 'docker-compose exec -T database /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P $DB_PASSWORD -Q "SELECT 1" -b', returnStatus: true)
+                                    def result = sh(script: 'docker compose exec -T database /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P $DB_PASSWORD -Q "SELECT 1" -b', returnStatus: true)
                                     return result == 0
                                 }
                             }
@@ -122,7 +122,7 @@ pipeline {
         stage('Start Backend') {
             steps {
                 echo 'Starting backend API...'
-                sh 'docker-compose up -d api'
+                sh 'docker compose up -d api'
                 
                 echo 'Waiting for API to be ready...'
                 script {
@@ -141,7 +141,7 @@ pipeline {
         stage('Start Frontend') {
             steps {
                 echo 'Starting frontend application...'
-                sh 'docker-compose up -d web'
+                sh 'docker compose up -d web'
                 
                 echo 'Waiting for frontend to be ready...'
                 script {
@@ -194,10 +194,10 @@ pipeline {
                         sed -i 's/IMAGE_TAG_PLACEHOLDER/${IMAGE_TAG}/g' docker-compose.prod.yml
                     """
 
-                    // Deploy using docker-compose
+                    // Deploy using docker compose
                     sh """
-                        docker-compose -f docker-compose.prod.yml --env-file .env pull
-                        docker-compose -f docker-compose.prod.yml --env-file .env up -d --remove-orphans
+                        docker compose -f docker-compose.prod.yml --env-file .env pull
+                        docker compose -f docker-compose.prod.yml --env-file .env up -d --remove-orphans
                     """
                 }
             }
@@ -237,7 +237,7 @@ pipeline {
             script {
                 if (env.BRANCH_NAME != 'master') {
                     try {
-                        sh 'docker-compose down'
+                        sh 'docker compose down'
                     } catch (Exception e) {
                         echo "Error stopping containers: ${e.getMessage()}"
                     }

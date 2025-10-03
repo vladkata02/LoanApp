@@ -2,24 +2,21 @@
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
 
-# Copy solution file
-COPY LoanApp.sln ./
+# Copy project files first for better layer caching
+COPY LoanApp.Api/LoanApp.Web.Api.csproj LoanApp.Api/
+COPY LoanApp.Application/LoanApp.Application.csproj LoanApp.Application/
+COPY LoanApp.Data/LoanApp.Data.csproj LoanApp.Data/
+COPY LoanApp.Domain/LoanApp.Domain.csproj LoanApp.Domain/
+COPY LoanApp.Infrastructure/LoanApp.Infrastructure.csproj LoanApp.Infrastructure/
 
-# Copy project files
-COPY LoanApp.Api/*.csproj ./LoanApp.Api/
-COPY LoanApp.Application/*.csproj ./LoanApp.Application/
-COPY LoanApp.Data/*.csproj ./LoanApp.Data/
-COPY LoanApp.Domain/*.csproj ./LoanApp.Domain/
-COPY LoanApp.Infrastructure/*.csproj ./LoanApp.Infrastructure/
+# Restore dependencies for the API project
+RUN dotnet restore LoanApp.Api/LoanApp.Web.Api.csproj
 
-# Restore dependencies
-RUN dotnet restore
-
-# Copy source code
+# Copy the rest of the source code
 COPY . .
 
 # Build the application
-RUN dotnet build -c Release --no-restore
+RUN dotnet build LoanApp.Api/LoanApp.Web.Api.csproj -c Release --no-restore
 
 # Run tests
 #RUN dotnet test --no-build --verbosity normal --configuration Release
@@ -30,6 +27,11 @@ RUN dotnet publish LoanApp.Api/LoanApp.Web.Api.csproj -c Release -o /app/publish
 # Runtime stage
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS runtime
 WORKDIR /app
+
+# Install curl for health checks
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends curl \
+    && rm -rf /var/lib/apt/lists/*
 
 # Copy published application
 COPY --from=build /app/publish .
@@ -45,4 +47,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
 ENV ASPNETCORE_URLS=http://+:8080
 ENV ASPNETCORE_ENVIRONMENT=Production
 
-ENTRYPOINT ["dotnet", "LoanApp.Api.dll"]
+ENTRYPOINT ["dotnet", "LoanApp.Web.Api.dll"]
