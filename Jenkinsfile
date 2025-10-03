@@ -2,20 +2,14 @@ pipeline {
     agent any
 
     environment {
-        // Docker settings
-        stage('Start Database') {
-            steps {
-                echo 'Starting database service...'
-                IMAGE_TAG = "${BUILD_NUMBER}-${GIT_COMMIT[0..7]}"
-                
-                // URLs - Update these to your actual domains
-                API_URL = "${env.BRANCH_NAME == 'master' ? 'https://api.yourdomain.com' : 'http://localhost:8080'}"
-                FRONTEND_URL = "${env.BRANCH_NAME == 'master' ? 'https://yourdomain.com' : 'http://localhost:8081'}"
-                
-                // Docker Compose
-                COMPOSE_PROJECT_NAME = "loanapp-${env.BRANCH_NAME}"
-            }
-        }
+        DOCKER_REGISTRY = 'docker.io'
+        IMAGE_TAG = "${BUILD_NUMBER}-${GIT_COMMIT[0..7]}"
+        
+        API_URL = "'http://localhost:8080'"
+        FRONTEND_URL = "'http://localhost:8081'"
+
+        // Docker Compose
+        COMPOSE_PROJECT_NAME = "loanapp-${env.BRANCH_NAME}"
     }
 
     stages {
