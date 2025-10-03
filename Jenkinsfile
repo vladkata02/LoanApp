@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         // Docker settings
-                stage('Start Database') {
+        stage('Start Database') {
             steps {
                 echo 'Starting database service...'
                 IMAGE_TAG = "${BUILD_NUMBER}-${GIT_COMMIT[0..7]}"
@@ -14,7 +14,8 @@ pipeline {
                 
                 // Docker Compose
                 COMPOSE_PROJECT_NAME = "loanapp-${env.BRANCH_NAME}"
-                }
+            }
+        }
     }
 
     stages {
