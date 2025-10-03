@@ -6,15 +6,15 @@ pipeline {
                 stage('Start Database') {
             steps {
                 echo 'Starting database service...'
-                sh 'docker-compose up -d database'ER_REGISTRY = 'docker.io'  // Change to your registry (docker.io, your-registry.com, etc.)
-        IMAGE_TAG = "${BUILD_NUMBER}-${GIT_COMMIT[0..7]}"
-        
-        // URLs - Update these to your actual domains
-        API_URL = "${env.BRANCH_NAME == 'master' ? 'https://api.yourdomain.com' : 'http://localhost:8080'}"
-        FRONTEND_URL = "${env.BRANCH_NAME == 'master' ? 'https://yourdomain.com' : 'http://localhost:8081'}"
-        
-        // Docker Compose
-        COMPOSE_PROJECT_NAME = "loanapp-${env.BRANCH_NAME}"
+                IMAGE_TAG = "${BUILD_NUMBER}-${GIT_COMMIT[0..7]}"
+                
+                // URLs - Update these to your actual domains
+                API_URL = "${env.BRANCH_NAME == 'master' ? 'https://api.yourdomain.com' : 'http://localhost:8080'}"
+                FRONTEND_URL = "${env.BRANCH_NAME == 'master' ? 'https://yourdomain.com' : 'http://localhost:8081'}"
+                
+                // Docker Compose
+                COMPOSE_PROJECT_NAME = "loanapp-${env.BRANCH_NAME}"
+                }
     }
 
     stages {
