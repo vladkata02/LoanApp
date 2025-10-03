@@ -6,11 +6,6 @@ pipeline {
         DOCKER_REGISTRY = 'docker.io'  // Change to your registry (docker.io, your-registry.com, etc.)
         IMAGE_TAG = "${BUILD_NUMBER}-${GIT_COMMIT[0..7]}"
         
-        // Application secrets
-        DB_SA_PASSWORD = credentials('loanapp-db-password')
-        JWT_SECRET = credentials('loanapp-jwt-secret')
-        ADMIN_PASSWORD = credentials('loanapp-admin-password')
-        
         // URLs - Update these to your actual domains
         API_URL = "${env.BRANCH_NAME == 'master' ? 'https://api.yourdomain.com' : 'http://localhost:8080'}"
         FRONTEND_URL = "${env.BRANCH_NAME == 'master' ? 'https://yourdomain.com' : 'http://localhost:8081'}"
@@ -31,11 +26,21 @@ pipeline {
             steps {
                 echo 'Setting up Docker environment...'
                 script {
-                    // Create environment file for Docker Compose with proper encoding
+                    // Create environment file for Docker Compose with proper encoding and secure credential handling
+                    withCredentials([
+                        string(credentialsId: 'loanapp-db-password', variable: 'DB_PASSWORD'),
+                        string(credentialsId: 'loanapp-jwt-secret', variable: 'JWT_SECRET_VAL'),
+                        string(credentialsId: 'loanapp-admin-password', variable: 'ADMIN_PASSWORD_VAL')
+                    ]) {
+                        bat '''
+                            echo DB_SA_PASSWORD=%DB_PASSWORD% > .env
+                            echo JWT_SECRET=%JWT_SECRET_VAL% >> .env
+                            echo ADMIN_PASSWORD=%ADMIN_PASSWORD_VAL% >> .env
+                        '''
+                    }
+                    
+                    // Add non-sensitive variables
                     bat """
-                        echo DB_SA_PASSWORD=${DB_SA_PASSWORD} > .env
-                        echo JWT_SECRET=${JWT_SECRET} >> .env
-                        echo ADMIN_PASSWORD=${ADMIN_PASSWORD} >> .env
                         echo API_URL=${API_URL} >> .env
                         echo FRONTEND_URL=${FRONTEND_URL} >> .env
                         echo COMPOSE_PROJECT_NAME=${COMPOSE_PROJECT_NAME} >> .env
@@ -87,8 +92,10 @@ pipeline {
                     timeout(time: 3, unit: 'MINUTES') {
                         waitUntil {
                             script {
-                                def result = bat(script: 'docker-compose exec -T database /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P %DB_SA_PASSWORD% -Q "SELECT 1" -b', returnStatus: true)
-                                return result == 0
+                                withCredentials([string(credentialsId: 'loanapp-db-password', variable: 'DB_PASSWORD')]) {
+                                    def result = bat(script: 'docker-compose exec -T database /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P %DB_PASSWORD% -Q "SELECT 1" -b', returnStatus: true)
+                                    return result == 0
+                                }
                             }
                         }
                     }
@@ -100,14 +107,16 @@ pipeline {
             steps {
                 echo 'Running Entity Framework migrations...'
                 script {
-                    // Run migrations using a temporary container
-                    bat """
-                        docker run --rm --network=${COMPOSE_PROJECT_NAME}_loanapp-network ^
-                            -e ConnectionStrings__DefaultConnection="Server=database,1433;Database=LoanAppDb;User Id=sa;Password=${DB_SA_PASSWORD};TrustServerCertificate=True" ^
-                            -v "%cd%:/src" ^
-                            mcr.microsoft.com/dotnet/sdk:9.0 ^
-                            powershell -c "cd /src; dotnet ef database update --project LoanApp.Infrastructure --startup-project LoanApp.Api --verbose"
-                    """
+                    // Run migrations using a temporary container with secure credential handling
+                    withCredentials([string(credentialsId: 'loanapp-db-password', variable: 'DB_PASSWORD')]) {
+                        bat '''
+                            docker run --rm --network=%COMPOSE_PROJECT_NAME%_loanapp-network ^
+                                -e "ConnectionStrings__DefaultConnection=Server=database,1433;Database=LoanAppDb;User Id=sa;Password=%DB_PASSWORD%;TrustServerCertificate=True" ^
+                                -v "%cd%:/src" ^
+                                mcr.microsoft.com/dotnet/sdk:9.0 ^
+                                powershell -c "cd /src; dotnet ef database update --project LoanApp.Infrastructure --startup-project LoanApp.Api --verbose"
+                        '''
+                    }
                 }
             }
         }
@@ -174,7 +183,6 @@ pipeline {
         stage('Deploy to Production') {
             when {
                 anyOf {
-                    branch 'main'
                     branch 'master'
                 }
             }
@@ -200,7 +208,6 @@ pipeline {
         stage('Production Health Check') {
             when {
                 anyOf {
-                    branch 'main'
                     branch 'master'
                 }
             }
@@ -218,7 +225,7 @@ pipeline {
                         }
                     }
                     
-                    echo '✅ All services are healthy!'
+                    echo 'All services are healthy!'
                 }
             }
         }
